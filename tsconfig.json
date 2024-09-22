@@ -30,7 +30,7 @@
   },
   "exclude": [
     "example",
-    "wizzardtor-example_",
+    "wizzardtor-example",
     "example-manual-state",
     "node_modules",
     "babel.config.js",
