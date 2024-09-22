@@ -29,6 +29,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
     "lint": "eslint \"lib/**/*.{ts,tsx,js,jsx}\"",
     "prettier": "npx prettier --write . && git add .",
+    "prettier-staged": "npx prettier --write . ",
     "husky:setup": "npx husky-init && npm run husky:commitlint && npm run husky:prettier && npm run husky:lint",
     "husky:commitlint": "npx husky add .husky/commit-msg 'npx --no-install commitlint --edit'",
     "semantic-release": "semantic-release",
