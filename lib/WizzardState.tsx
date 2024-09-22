@@ -4,7 +4,7 @@ import React from "react";
 import { produce } from "immer";
 
 //
-export interface RouterStepProp<DataT = any | object> {
+export interface RouterStepProp<DataT = unknown | object> {
   component: React.ElementType;
   routeName: string;
   //default
@@ -36,7 +36,7 @@ export interface RouterProps {
 //For implementing WizzardState for bmultiple types
 export interface IWizzardStateCallbacks {
   // When every step change this is executed
-  OnStepChanged?: (current: number, previous?: number) => void | any;
+  OnStepChanged?: (current: number, previous?: number) => void | unknown;
   // If the step validation is active, this is executed when the step is
   // going to go to the next step
   OnStepValidation?: (current: number, previous?: number) => boolean;
@@ -47,7 +47,7 @@ export interface IWizzardStateCallbacks {
 }
 
 // State for handling WizzardState
-export interface IWizzardState<DataT = any | object> {
+export interface IWizzardState<DataT = unknown | object> {
   // the current index of the steps
   currentStep: number;
   //steps passed when configuring the wizzard
@@ -57,10 +57,13 @@ export interface IWizzardState<DataT = any | object> {
   stateCallback: IWizzardStateCallbacks;
 
   //Initializes the state with the WizzardConfiguration
-  initWithConf: (wConf: IWizzardConfiguration) => void;
+  initWithConf: (wConf: IWizzardConfiguration<DataT>) => void;
 
   //sets the step and the defaultStep number
-  setWizardSteps: (stps: Array<RouterStepProp>, defaultStep: number) => void;
+  setWizardSteps: (
+    stps: Array<RouterStepProp<DataT>>,
+    defaultStep: number,
+  ) => void;
 
   //Checks if the current step is valid
   isCurrentStepValid: () => boolean;
@@ -83,8 +86,8 @@ export interface IWizzardState<DataT = any | object> {
 }
 
 //Configuration options
-export type IWizzardConfiguration = {
-  steps: Array<RouterStepProp>;
+export type IWizzardConfiguration<DataT = unknown | object> = {
+  steps: Array<RouterStepProp<DataT>>;
   defaultStep: number;
   callbacks: IWizzardStateCallbacks;
 };
@@ -97,14 +100,14 @@ export enum IWizzardErr {
 // Uses a default implementation for state handling
 export const USE_DEFAULT_STATE_IMPL = true;
 
-export function createCustomWizzardState<DataT = any | object>() {
+export function createCustomWizzardState<DataT = unknown | object>() {
   return create<IWizzardState<DataT>>((set, get) => ({
     currentStep: 0,
     steps: [],
     stateCallback: USE_DEFAULT_STATE_IMPL ? ({} as IWizzardStateCallbacks) : {},
 
     initWithConf(wConf) {
-      set((state) => ({
+      set(() => ({
         steps: wConf.steps,
         currentStep: wConf.defaultStep,
         stateCallback: wConf.callbacks,
@@ -112,14 +115,14 @@ export function createCustomWizzardState<DataT = any | object>() {
     },
     setWizardSteps(stps, defaultStep: number = 0) {
       //TODO: validate if the defaultStep is in the range of the steps length
-      set((state) => ({
+      set(() => ({
         steps: stps,
         currentStep: defaultStep,
       }));
     },
 
     isCurrentStepValid() {
-      var state = get();
+      const state = get();
       if (state.steps.length >= state.currentStep) {
         return state.steps[state.currentStep].valid;
       }
@@ -127,11 +130,11 @@ export function createCustomWizzardState<DataT = any | object>() {
     },
 
     setCurrentStepValid(currentStep, valid = true) {
-      var state = get();
+      const state = get();
       if (state.steps.length >= state.currentStep) {
         const curr = state.currentStep;
         set(
-          produce((st: IWizzardState) => {
+          produce<IWizzardState<DataT>>((st) => {
             st.steps[curr].valid = valid;
           }),
         );
@@ -153,29 +156,29 @@ export function createCustomWizzardState<DataT = any | object>() {
       return false;
     },
     canGoBack() {
-      var state = get();
-      let IndexValid = state.IsInRange(state.currentStep - 1);
+      const state = get();
+      const IndexValid = state.IsInRange(state.currentStep - 1);
       if (!IndexValid) return false;
       //TODO: add validation
       return true;
     },
     canGoForward() {
-      var state = get();
-      let IndexValid = state.IsInRange(state.currentStep + 1);
+      const state = get();
+      const IndexValid = state.IsInRange(state.currentStep + 1);
       if (!IndexValid) return false;
 
       //TODO: add validation
       return true;
     },
     goBack() {
-      var state = get();
-      var pStep = state.currentStep;
-      var nStep = state.currentStep - 1;
-      let IndexValid = state.IsInRange(nStep);
+      const state = get();
+      const pStep = state.currentStep;
+      const nStep = state.currentStep - 1;
+      const IndexValid = state.IsInRange(nStep);
 
       if (!IndexValid) return false;
 
-      let step = state.steps[nStep];
+      const step = state.steps[nStep];
       if (step.useValidation && step.validateFunc != null) {
         if (step.validateFunc(step) == false) {
           return false;
@@ -183,7 +186,7 @@ export function createCustomWizzardState<DataT = any | object>() {
       }
 
       set(
-        produce((st: IWizzardState) => {
+        produce<IWizzardState<DataT>>((st) => {
           st.currentStep = nStep;
           state.stateCallback?.OnStepChanged?.(nStep, pStep);
         }),
@@ -191,14 +194,14 @@ export function createCustomWizzardState<DataT = any | object>() {
       return true;
     },
     navigateForward() {
-      var state = get();
-      var pStep = state.currentStep;
-      var nStep = state.currentStep + 1;
-      let IndexValid = state.IsInRange(nStep);
+      const state = get();
+      const pStep = state.currentStep;
+      const nStep = state.currentStep + 1;
+      const IndexValid = state.IsInRange(nStep);
 
       if (!IndexValid) return false;
 
-      let step = state.steps[nStep];
+      const step = state.steps[nStep];
       if (step.useValidation && step.validateFunc != null) {
         if (step.validateFunc(step) == false) {
           return false;
@@ -206,7 +209,7 @@ export function createCustomWizzardState<DataT = any | object>() {
       }
 
       set(
-        produce((st: IWizzardState) => {
+        produce<IWizzardState<DataT>>((st) => {
           st.currentStep = nStep;
           state.stateCallback?.OnStepChanged?.(nStep, pStep);
         }),
@@ -215,7 +218,7 @@ export function createCustomWizzardState<DataT = any | object>() {
       return true;
     },
     IsInRange(stepNumber) {
-      var state = get();
+      const state = get();
       return (
         state.steps.length > 0 &&
         stepNumber >= 0 &&

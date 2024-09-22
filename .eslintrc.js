@@ -19,6 +19,7 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
+    "plugin:comment-length/recommended",
   ],
   plugins: [
     "react",
@@ -128,5 +129,13 @@ module.exports = {
     camelcase: "error",
     "prefer-destructuring": "error",
     "no-nested-ternary": "error",
+    "react/no-unescaped-entities": 0,
+    "react/react-in-jsx-scope": "off",
+    "comment-length/limit-tagged-template-literal-comments": [
+      "warn",
+      {
+        tags: ["css"], // will perform comment analysis on all tagged template literals named `css`
+      },
+    ],
   },
 };

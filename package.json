@@ -22,6 +22,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy:assets && npm run copy:package",
     "prepare": "husky install",
+    "test": "",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
     "lint": "eslint \"lib/**/*.{ts,tsx,js,jsx}\"",
     "prettier": "npx prettier --write . && git add .",
@@ -43,6 +44,7 @@
     "cpx": "^1.5.0",
     "eslint": "^8.19.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-comment-length": "^2.1.1",
     "eslint-plugin-import": "^2.30.0",
     "eslint-plugin-jest": "^28.8.3",
     "eslint-plugin-prettier": "^5.2.1",

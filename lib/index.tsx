@@ -1,6 +1,6 @@
 // Your main export will be here
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 
 import { useWizardState } from "./WizzardState";
 
