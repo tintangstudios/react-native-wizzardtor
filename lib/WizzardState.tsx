@@ -13,7 +13,7 @@ export interface RouterStepProp<DataT = unknown | object> {
   useValidation?: boolean;
   // This function will be used when the useValidation is set and this one
   // is set to a valid function
-  validateFunc?: (step: RouterStepProp) => boolean;
+  validateFunc?: (step: RouterStepProp<DataT>) => boolean;
   // If you want to store data on the wizzardState this is the way
   // note: maybe later support templating this field
   customData?: DataT;
