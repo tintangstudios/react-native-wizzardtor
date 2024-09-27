@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import React from "react";
 
-import { produce } from "immer";
+import { produce ,castDraft} from "immer";
 
 //
 export interface RouterStepProp<DataT = unknown | object> {
@@ -65,6 +65,9 @@ export interface IWizzardState<DataT = unknown | object> {
     defaultStep: number,
   ) => void;
 
+  //updates the data in the current step
+  updateCurrentStepCustomData: (obj: DataT) => void;
+
   //Checks if the current step is valid
   isCurrentStepValid: () => boolean;
   //Set the valid property for the step
@@ -100,6 +103,7 @@ export enum IWizzardErr {
 // Uses a default implementation for state handling
 export const USE_DEFAULT_STATE_IMPL = true;
 
+
 export function createCustomWizzardState<DataT = unknown | object>() {
   return create<IWizzardState<DataT>>((set, get) => ({
     currentStep: 0,
@@ -121,6 +125,16 @@ export function createCustomWizzardState<DataT = unknown | object>() {
       }));
     },
 
+    updateCurrentStepCustomData(o) {
+      const state = get()
+      const curr = state.currentStep;
+      set(
+      
+        produce((stDraft: { steps: { [x: string]: { customData: any; }; }; },) => {
+          stDraft.steps[curr].customData = o
+        }),
+      );
+    },
     isCurrentStepValid() {
       const state = get();
       if (state.steps.length >= state.currentStep) {
@@ -157,6 +171,7 @@ export function createCustomWizzardState<DataT = unknown | object>() {
     },
     canGoBack() {
       const state = get();
+
       const IndexValid = state.IsInRange(state.currentStep - 1);
       if (!IndexValid) return false;
       //TODO: add validation
