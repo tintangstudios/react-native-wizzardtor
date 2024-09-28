@@ -1,12 +1,18 @@
 import { create } from "zustand";
-import React from "react";
+import React, { FunctionComponent, FunctionComponentElement } from "react";
 
-import { produce ,castDraft} from "immer";
+import { produce } from "immer";
 
+
+export type WizzardComponentType = 
+React.ElementType | JSX.Element |
+ FunctionComponent<React.ElementType> 
+ ;
 //
 export interface RouterStepProp<DataT = unknown | object> {
-  component: React.ElementType;
+  component: WizzardComponentType
   routeName: string;
+  iconName?: string;
   //default
   valid: boolean;
   // defaults to false, so that the client specify validation strategy
@@ -130,7 +136,7 @@ export function createCustomWizzardState<DataT = unknown | object>() {
       const curr = state.currentStep;
       set(
       
-        produce((stDraft: { steps: { [x: string]: { customData: any; }; }; },) => {
+        produce((stDraft) => {
           stDraft.steps[curr].customData = o
         }),
       );

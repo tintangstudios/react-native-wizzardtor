@@ -1,6 +1,6 @@
 {
   "name": "react-native-wizzardtor",
-  "version": "v1.0.0-beta.2",
+  "version": "v1.0.0-beta.8",
   "description": "A library for making wizzards simple, and flexible for different type of applications .",
   "main": "./build/dist/index.js",
   "repository": {
