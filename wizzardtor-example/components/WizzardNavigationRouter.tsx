@@ -5,7 +5,6 @@ import React, {
   useState,
 } from "react";
 
-import { last } from "lodash";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Button, View, BackHandler } from "react-native";
 import {
@@ -150,7 +149,9 @@ export function WizzardBodyComponent(props: WizzardNavStackScreenProps) {
           });
         }}
       ></Button>
-      <ComponentBody />
+      <>
+        <ComponentBody />
+      </>
     </>
   );
 }

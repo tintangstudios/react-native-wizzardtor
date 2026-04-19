@@ -1,6 +1,5 @@
 import { View, Text, Button } from "react-native";
 import React from "react";
-import { useWizardState } from "react-native-wizzardtor/lib";
 import { useCustomWizzardState } from "./common/useCustomWizzardState";
 
 const Buttoned_Screen = () => {

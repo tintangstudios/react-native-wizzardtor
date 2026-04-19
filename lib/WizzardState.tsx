@@ -1,16 +1,14 @@
-import { create } from "zustand";
-import React, { FunctionComponent, FunctionComponentElement } from "react";
+import React, { FunctionComponent } from "react";
 
-import { produce } from "immer";
+import { observable } from "@legendapp/state";
 
-
-export type WizzardComponentType = 
-React.ElementType | JSX.Element |
- FunctionComponent<React.ElementType> 
- ;
+export type WizzardComponentType =
+  | React.ElementType
+  | JSX.Element
+  | FunctionComponent<React.ElementType>;
 //
 export interface RouterStepProp<DataT = unknown | object> {
-  component: WizzardComponentType
+  component: WizzardComponentType;
   routeName: string;
   iconName?: string;
   //default
@@ -77,7 +75,8 @@ export interface IWizzardState<DataT = unknown | object> {
   //Checks if the current step is valid
   isCurrentStepValid: () => boolean;
   //Set the valid property for the step
-  setCurrentStepValid: (currentStep: number, valid: boolean) => void;
+  setCurrentStepByIndexValid: (currentStep: number, valid: boolean) => void;
+  setCurrentStepValid: (valid: boolean) => void;
 
   //Navigate to an specific step
   goTo: (stepNumber: number) => boolean;
@@ -109,66 +108,64 @@ export enum IWizzardErr {
 // Uses a default implementation for state handling
 export const USE_DEFAULT_STATE_IMPL = true;
 
-
 export function createCustomWizzardState<DataT = unknown | object>() {
-  return create<IWizzardState<DataT>>((set, get) => ({
+  const state$ = observable<IWizzardState<DataT>>({
     currentStep: 0,
     steps: [],
     stateCallback: USE_DEFAULT_STATE_IMPL ? ({} as IWizzardStateCallbacks) : {},
 
     initWithConf(wConf) {
-      set(() => ({
-        steps: wConf.steps,
-        currentStep: wConf.defaultStep,
-        stateCallback: wConf.callbacks,
-      }));
+      state$.steps = wConf.steps;
+      state$.currentStep = wConf.defaultStep;
+      state$.stateCallback = wConf.callbacks;
     },
     setWizardSteps(stps, defaultStep: number = 0) {
       //TODO: validate if the defaultStep is in the range of the steps length
-      set(() => ({
-        steps: stps,
-        currentStep: defaultStep,
-      }));
+      state$.steps = stps;
+      state$.currentStep = defaultStep;
     },
 
     updateCurrentStepCustomData(o) {
-      const state = get()
-      const curr = state.currentStep;
-      set(
-      
-        produce((stDraft) => {
-          stDraft.steps[curr].customData = o
-        }),
-      );
+      const curr = state$.currentStep.get();
+      state$.steps[curr].set((prev) => {
+        prev.customData = o;
+        return prev;
+      });
     },
     isCurrentStepValid() {
-      const state = get();
-      if (state.steps.length >= state.currentStep) {
-        return state.steps[state.currentStep].valid;
+      if (state$.steps.length >= state$.currentStep.get()) {
+        return state$.steps[state$.currentStep].valid;
       }
       return false;
     },
 
-    setCurrentStepValid(currentStep, valid = true) {
-      const state = get();
-      if (state.steps.length >= state.currentStep) {
-        const curr = state.currentStep;
-        set(
-          produce<IWizzardState<DataT>>((st) => {
-            st.steps[curr].valid = valid;
-          }),
-        );
+    setCurrentStepByIndexValid(currentStep, valid = true) {
+      if (state$.steps.length >= currentStep) {
+        const curr = currentStep;
+        state$.steps[curr].set((prev) => {
+          prev.valid = valid;
+          return prev;
+        });
+      }
+    },
+
+    setCurrentStepValid(valid = true) {
+      if (state$.steps.length >= state$.currentStep) {
+        const curr = state$.currentStep;
+        state$.steps[curr].set((prev) => {
+          prev.valid = valid;
+          return prev;
+        });
       }
     },
     goTo(stepNumber) {
       //TODO: validate
-      const state = get();
       if (
-        state.stateCallback != null &&
-        typeof state.stateCallback === "function"
+        state$.stateCallback != null &&
+        typeof state$.stateCallback === "function"
       ) {
-        if (get().stateCallback.OnStepChanged !== null) {
-          return get().stateCallback.OnStepValidation?.(stepNumber) ?? false;
+        if (state$.stateCallback.OnStepChanged !== null) {
+          return state$.stateCallback.OnStepValidation?.(stepNumber) ?? false;
         }
       } else {
         return true;
@@ -176,77 +173,65 @@ export function createCustomWizzardState<DataT = unknown | object>() {
       return false;
     },
     canGoBack() {
-      const state = get();
-
-      const IndexValid = state.IsInRange(state.currentStep - 1);
+      const IndexValid = state$.IsInRange(state$.currentStep - 1);
       if (!IndexValid) return false;
       //TODO: add validation
       return true;
     },
     canGoForward() {
-      const state = get();
-      const IndexValid = state.IsInRange(state.currentStep + 1);
+      const IndexValid = state$.IsInRange(state$.currentStep + 1);
       if (!IndexValid) return false;
 
       //TODO: add validation
       return true;
     },
     goBack() {
-      const state = get();
-      const pStep = state.currentStep;
-      const nStep = state.currentStep - 1;
-      const IndexValid = state.IsInRange(nStep);
+      const pStep = state$.currentStep;
+      const nStep = state$.currentStep - 1;
+      const IndexValid = state$.IsInRange(nStep);
 
       if (!IndexValid) return false;
 
-      const step = state.steps[nStep];
+      const step = state$.steps[nStep].get;
       if (step.useValidation && step.validateFunc != null) {
         if (step.validateFunc(step) == false) {
           return false;
         }
       }
 
-      set(
-        produce<IWizzardState<DataT>>((st) => {
-          st.currentStep = nStep;
-          state.stateCallback?.OnStepChanged?.(nStep, pStep);
-        }),
-      );
+      state$.currentStep = nStep;
+      state$.stateCallback?.OnStepChanged?.(nStep, pStep);
+
       return true;
     },
     navigateForward() {
-      const state = get();
-      const pStep = state.currentStep;
-      const nStep = state.currentStep + 1;
-      const IndexValid = state.IsInRange(nStep);
+      const pStep = state$.currentStep;
+      const nStep = state$.currentStep + 1;
+      const IndexValid = state$.IsInRange(nStep);
 
       if (!IndexValid) return false;
 
-      const step = state.steps[nStep];
+      const step = state$.steps[nStep];
       if (step.useValidation && step.validateFunc != null) {
         if (step.validateFunc(step) == false) {
           return false;
         }
       }
 
-      set(
-        produce<IWizzardState<DataT>>((st) => {
-          st.currentStep = nStep;
-          state.stateCallback?.OnStepChanged?.(nStep, pStep);
-        }),
-      );
+      state$.currentStep = nStep;
+      state$.stateCallback?.OnStepChanged?.(nStep, pStep);
 
       return true;
     },
     IsInRange(stepNumber) {
-      const state = get();
       return (
-        state.steps.length > 0 &&
+        state$.steps.length > 0 &&
         stepNumber >= 0 &&
-        stepNumber < state.steps.length
+        stepNumber < state$.steps.length
       );
     },
-  }));
+  });
+  return state$;
 }
 
 //Defaults
